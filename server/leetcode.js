@@ -1,17 +1,13 @@
-//graphql query
+// GraphQL query
 const query = `
   query getUserProfile($username: String!) {
-    allQuestionsCount {
-      difficulty
-      count
-    }
     matchedUser(username: $username) {
-      contributions {
-        points
-      }
+      username
       profile {
+        realName
         reputation
         ranking
+        userAvatar
       }
       submissionCalendar
       submitStats {
@@ -26,6 +22,9 @@ const query = `
           submissions
         }
       }
+      contributions {
+        points
+      }
     }
     recentSubmissionList(username: $username) {
       title
@@ -35,30 +34,18 @@ const query = `
       lang
       __typename
     }
-    matchedUserStats: matchedUser(username: $username) {
-      submitStats: submitStatsGlobal {
-        acSubmissionNum {
-          difficulty
-          count
-          submissions
-          __typename
-        }
-        totalSubmissionNum {
-          difficulty
-          count
-          submissions
-          __typename
-        }
-        __typename
-      }
+    allQuestionsCount {
+      difficulty
+      count
     }
   }
 `;
 
-
-// format data 
+// Format data
 const formatData = (data) => {
     let sendData =  {
+        username: data.matchedUser.username,
+        realName: data.matchedUser.profile.realName,
         totalSolved: data.matchedUser.submitStats.acSubmissionNum[0].count,
         totalSubmissions:  data.matchedUser.submitStats.totalSubmissionNum,
         totalQuestions: data.allQuestionsCount[0].count,
@@ -73,12 +60,13 @@ const formatData = (data) => {
         reputation: data.matchedUser.profile.reputation,
         submissionCalendar: JSON.parse(data.matchedUser.submissionCalendar),
         recentSubmissions: data.recentSubmissionList,
-        matchedUserStats: data.matchedUser.submitStats
+        matchedUserStats: data.matchedUser.submitStats,
+        avatarUrl: data.matchedUser.profile.userAvatar
     }
     return sendData;
 }
 
-//fetching the data
+// Fetching the data
 export function leetcode(req, res) {
     let user = req.params.id;
     fetch('https://leetcode.com/graphql', {
